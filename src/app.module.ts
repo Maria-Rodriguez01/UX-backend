@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule } from '@nestjs/config';
+import { PrismaModule } from './prisma/prisma.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
+import { PassportGlobalModule } from './auth/passport-global.module.js';
 import { UsersModule } from './users/users.module.js';
 import { HabitsModule } from './habits/habits.module.js';
 import { RecordsModule } from './records/records.module.js';
@@ -14,12 +15,8 @@ import { StatisticsModule } from './statistics/statistics.module.js';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MongooseModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI'),
-      }),
-    }),
+    PrismaModule,
+    PassportGlobalModule,
     AuthModule,
     UsersModule,
     HabitsModule,

@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  nombre        String
+  correo        String   @unique
+  contraseña    String
+  fechaRegistro DateTime @default(now())
+  habits        Habit[]
+  records       Record[]
+}
+
+model Habit {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  nombre       String
+  descripcion  String?
+  categoria    String?
+  frecuencia   String
+  prioridad    String
+  fechaInicio  DateTime
+  fechaFin     DateTime?
+  activo       Boolean  @default(true)
+  usuarioId    String   @db.ObjectId
+  usuario      User     @relation(fields: [usuarioId], references: [id])
+  records      Record[]
+}
+
+model Record {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  habitoId    String   @db.ObjectId
+  habito      Habit    @relation(fields: [habitoId], references: [id])
+  usuarioId   String   @db.ObjectId
+  usuario     User     @relation(fields: [usuarioId], references: [id])
+  fecha       DateTime
+  completado  Boolean  @default(true)
+}
