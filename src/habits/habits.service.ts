@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { parseFecha, toDayStart } from '../common/date-utils.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateHabitDto } from './dto/create-habit.dto.js';
 import { UpdateHabitDto } from './dto/update-habit.dto.js';
@@ -16,9 +17,9 @@ export class HabitsService {
         categoria: createHabitDto.categoria ?? undefined,
         frecuencia: createHabitDto.frecuencia,
         prioridad: createHabitDto.prioridad,
-        fechaInicio: new Date(createHabitDto.fechaInicio),
+        fechaInicio: toDayStart(parseFecha(createHabitDto.fechaInicio)),
         fechaFin: createHabitDto.fechaFin
-          ? new Date(createHabitDto.fechaFin)
+          ? toDayStart(parseFecha(createHabitDto.fechaFin))
           : null,
         activo: createHabitDto.activo ?? true,
         usuario: {
@@ -63,11 +64,11 @@ export class HabitsService {
       data.prioridad = updateHabitDto.prioridad;
     }
     if (updateHabitDto.fechaInicio !== undefined) {
-      data.fechaInicio = new Date(updateHabitDto.fechaInicio);
+      data.fechaInicio = toDayStart(parseFecha(updateHabitDto.fechaInicio));
     }
     if (updateHabitDto.fechaFin !== undefined) {
       data.fechaFin = updateHabitDto.fechaFin
-        ? new Date(updateHabitDto.fechaFin)
+        ? toDayStart(parseFecha(updateHabitDto.fechaFin))
         : null;
     }
     if (updateHabitDto.activo !== undefined) {
@@ -87,12 +88,20 @@ export class HabitsService {
   }
 
   async remove(usuarioId: string, id: string) {
-    const result = await this.prisma.habit.deleteMany({
+    const habit = await this.prisma.habit.findFirst({
       where: { id, usuarioId },
     });
-    if (result.count === 0) {
+    if (!habit) {
       throw new NotFoundException('Hábito no encontrado');
     }
+    await this.prisma.$transaction([
+      this.prisma.record.deleteMany({
+        where: { habitoId: id, usuarioId },
+      }),
+      this.prisma.habit.deleteMany({
+        where: { id, usuarioId },
+      }),
+    ]);
     return { message: 'Hábito eliminado correctamente' };
   }
 }
