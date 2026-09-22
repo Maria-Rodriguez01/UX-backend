@@ -3,9 +3,12 @@ import {
   IsDateString,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
+  Min,
 } from 'class-validator';
+
 import { HabitFrecuencia } from './create-habit.dto.js';
 
 export class UpdateHabitDto {
@@ -24,7 +27,7 @@ export class UpdateHabitDto {
 
   @IsOptional()
   @IsEnum(HabitFrecuencia)
-  frecuencia?: string;
+  frecuencia?: HabitFrecuencia;
 
   @IsOptional()
   @IsString()
@@ -42,4 +45,13 @@ export class UpdateHabitDto {
   @IsOptional()
   @IsBoolean()
   activo?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  cantidadObjetivo?: number;
+
+  @IsOptional()
+  @IsString()
+  unidadObjetivo?: string;
 }

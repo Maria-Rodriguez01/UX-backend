@@ -3,8 +3,10 @@ import {
   IsDateString,
   IsMongoId,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
+  Min,
 } from 'class-validator';
 
 export class CreateRecordDto {
@@ -19,4 +21,9 @@ export class CreateRecordDto {
   @IsOptional()
   @IsBoolean()
   completado?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  cantidad?: number;
 }

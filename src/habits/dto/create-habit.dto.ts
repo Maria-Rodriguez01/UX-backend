@@ -3,14 +3,17 @@ import {
   IsDateString,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
+  Min,
 } from 'class-validator';
 
 export enum HabitFrecuencia {
   DAILY = 'daily',
   WEEKLY = 'weekly',
   CUSTOM = 'custom',
+  MONTHLY = 'monthly',
 }
 
 export class CreateHabitDto {
@@ -27,7 +30,7 @@ export class CreateHabitDto {
   categoria?: string;
 
   @IsEnum(HabitFrecuencia)
-  frecuencia: string;
+  frecuencia: HabitFrecuencia;
 
   @IsString()
   @IsNotEmpty()
@@ -42,5 +45,14 @@ export class CreateHabitDto {
 
   @IsOptional()
   @IsBoolean()
-  activo?: boolean;
+  esCuantificable?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  cantidadObjetivo?: number;
+
+  @IsOptional()
+  @IsString()
+  unidadObjetivo?: string;
 }
