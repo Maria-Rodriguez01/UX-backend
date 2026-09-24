@@ -7,8 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum HabitFrecuencia {
+  daily
+  weekly
+  monthly
+  custom
+}
+
+enum HabitPrioridad {
+  baja
+  media
+  alta
+}
+
 model User {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  id       String   @id @default(uuid()) @map("_id")
   nombre        String
   correo        String   @unique
   contraseña    String
@@ -19,31 +32,31 @@ model User {
 }
 
 model Habit {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  nombre       String
-  descripcion  String?
-  categoria    String?
-  frecuencia   String
-  prioridad    String
-  fechaInicio  DateTime
-  fechaFin     DateTime?
-  activo       Boolean  @default(true)
-  eliminado    Boolean  @default(false)
-  esCuantificable Boolean  @default(true)
+  id                String            @id @default(uuid()) @map("_id")
+  nombre            String
+  descripcion       String?
+  categoria         String?
+  frecuencia        HabitFrecuencia
+  prioridad         HabitPrioridad
+  fechaInicio       DateTime
+  fechaFin          DateTime?
+  activo            Boolean           @default(true)
+  eliminado         Boolean           @default(false)
+  esCuantificable   Boolean           @default(true)
   cantidadObjetivo  Float?
   unidadObjetivo    String?
-  usuarioId    String   @db.ObjectId
-  usuario      User     @relation(fields: [usuarioId], references: [id])
-  records      Record[]
+  usuarioId         String
+  usuario           User              @relation(fields: [usuarioId], references: [id])
+  records           Record[]
 }
 
 model Record {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  habitoId    String   @db.ObjectId
+  id          String   @id @default(uuid()) @map("_id")
+  habitoId    String
   habito      Habit    @relation(fields: [habitoId], references: [id])
-  usuarioId   String   @db.ObjectId
+  usuarioId   String
   usuario     User     @relation(fields: [usuarioId], references: [id])
   fecha       DateTime
   completado  Boolean  @default(true)
-  cantidad      Float?
+  cantidad    Float?
 }

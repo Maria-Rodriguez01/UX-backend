@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDateString,
@@ -9,12 +10,7 @@ import {
   Min,
 } from 'class-validator';
 
-export enum HabitFrecuencia {
-  DAILY = 'daily',
-  WEEKLY = 'weekly',
-  CUSTOM = 'custom',
-  MONTHLY = 'monthly',
-}
+import { HabitFrecuencia, HabitPrioridad } from '@prisma/client';
 
 export class CreateHabitDto {
   @IsString()
@@ -32,9 +28,8 @@ export class CreateHabitDto {
   @IsEnum(HabitFrecuencia)
   frecuencia: HabitFrecuencia;
 
-  @IsString()
-  @IsNotEmpty()
-  prioridad: string;
+  @IsEnum(HabitPrioridad)
+  prioridad: HabitPrioridad;
 
   @IsDateString()
   fechaInicio: string;
@@ -48,6 +43,7 @@ export class CreateHabitDto {
   esCuantificable?: boolean;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   cantidadObjetivo?: number;

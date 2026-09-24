@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDateString,
@@ -9,7 +10,7 @@ import {
   Min,
 } from 'class-validator';
 
-import { HabitFrecuencia } from './create-habit.dto.js';
+import { HabitFrecuencia, HabitPrioridad } from '@prisma/client';
 
 export class UpdateHabitDto {
   @IsOptional()
@@ -30,9 +31,8 @@ export class UpdateHabitDto {
   frecuencia?: HabitFrecuencia;
 
   @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  prioridad?: string;
+  @IsEnum(HabitPrioridad)
+  prioridad?: HabitPrioridad;
 
   @IsOptional()
   @IsDateString()
@@ -47,6 +47,11 @@ export class UpdateHabitDto {
   activo?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  esCuantificable?: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   cantidadObjetivo?: number;

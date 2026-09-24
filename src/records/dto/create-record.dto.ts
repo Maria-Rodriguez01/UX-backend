@@ -1,7 +1,7 @@
 import {
   IsBoolean,
   IsDateString,
-  IsMongoId,
+  IsUUID,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -12,7 +12,7 @@ import {
 export class CreateRecordDto {
   @IsString()
   @IsNotEmpty()
-  @IsMongoId()
+  @IsUUID()
   habito: string;
 
   @IsDateString()

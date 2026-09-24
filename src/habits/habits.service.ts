@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+
+import { Prisma } from '@prisma/client';
 
 import { parseFecha, toDayStart } from '../common/date-utils.js';
 
@@ -12,15 +18,36 @@ import { UpdateHabitDto } from './dto/update-habit.dto.js';
 export class HabitsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(usuarioId: string, createHabitDto: CreateHabitDto) {
+  async create(usuarioId: string, createHabitDto: CreateHabitDto) {
     const esCuantificable = createHabitDto.esCuantificable ?? true;
+
+    if (esCuantificable) {
+      if (
+        createHabitDto.cantidadObjetivo === undefined ||
+        createHabitDto.cantidadObjetivo <= 0
+      ) {
+        throw new BadRequestException(
+          'La cantidad objetivo debe ser mayor a 0.',
+        );
+      }
+
+      if (!createHabitDto.unidadObjetivo?.trim()) {
+        throw new BadRequestException(
+          'La unidad objetivo es obligatoria para hábitos cuantificables.',
+        );
+      }
+    }
 
     return this.prisma.habit.create({
       data: {
         nombre: createHabitDto.nombre,
+
         descripcion: createHabitDto.descripcion ?? undefined,
+
         categoria: createHabitDto.categoria ?? undefined,
+
         frecuencia: createHabitDto.frecuencia,
+
         prioridad: createHabitDto.prioridad,
 
         fechaInicio: toDayStart(parseFecha(createHabitDto.fechaInicio)),
@@ -29,33 +56,36 @@ export class HabitsService {
           ? toDayStart(parseFecha(createHabitDto.fechaFin))
           : null,
 
+        activo: true,
+
+        eliminado: false,
+
         esCuantificable,
 
         cantidadObjetivo: esCuantificable
-          ? (createHabitDto.cantidadObjetivo ?? undefined)
+          ? createHabitDto.cantidadObjetivo
           : null,
 
-        unidadObjetivo: esCuantificable
-          ? (createHabitDto.unidadObjetivo ?? undefined)
-          : null,
-
-        activo: true,
+        unidadObjetivo: esCuantificable ? createHabitDto.unidadObjetivo : null,
 
         usuario: {
-          connect: { id: usuarioId },
+          connect: {
+            id: usuarioId,
+          },
         },
       },
     });
   }
 
-  findAll(usuarioId: string) {
+  async findAll(usuarioId: string) {
     return this.prisma.habit.findMany({
       where: {
         usuarioId,
-        activo: true,
         eliminado: false,
       },
-      orderBy: { fechaInicio: 'desc' },
+      orderBy: {
+        fechaInicio: 'desc',
+      },
     });
   }
 
@@ -64,7 +94,7 @@ export class HabitsService {
       where: {
         id,
         usuarioId,
-        activo: true,
+        eliminado: false,
       },
     });
 
@@ -76,7 +106,19 @@ export class HabitsService {
   }
 
   async update(usuarioId: string, id: string, updateHabitDto: UpdateHabitDto) {
-    const data: Record<string, unknown> = {};
+    const habit = await this.prisma.habit.findFirst({
+      where: {
+        id,
+        usuarioId,
+        eliminado: false,
+      },
+    });
+
+    if (!habit) {
+      throw new NotFoundException('Hábito no encontrado');
+    }
+
+    const data: Prisma.HabitUpdateInput = {};
 
     if (updateHabitDto.nombre !== undefined) {
       data.nombre = updateHabitDto.nombre;
@@ -122,10 +164,20 @@ export class HabitsService {
     }
 
     if (updateHabitDto.cantidadObjetivo !== undefined) {
+      if (updateHabitDto.cantidadObjetivo <= 0) {
+        throw new BadRequestException(
+          'La cantidad objetivo debe ser mayor a 0.',
+        );
+      }
+
       data.cantidadObjetivo = updateHabitDto.cantidadObjetivo;
     }
 
     if (updateHabitDto.unidadObjetivo !== undefined) {
+      if (!updateHabitDto.unidadObjetivo.trim()) {
+        throw new BadRequestException('La unidad objetivo es obligatoria.');
+      }
+
       data.unidadObjetivo = updateHabitDto.unidadObjetivo;
     }
 
@@ -133,6 +185,7 @@ export class HabitsService {
       where: {
         id,
         usuarioId,
+        eliminado: false,
       },
       data,
     });
@@ -145,6 +198,7 @@ export class HabitsService {
       where: {
         id,
         usuarioId,
+        eliminado: false,
       },
     });
   }
@@ -154,7 +208,7 @@ export class HabitsService {
       where: {
         id,
         usuarioId,
-        activo: true,
+        eliminado: false,
       },
     });
 
@@ -169,6 +223,7 @@ export class HabitsService {
       },
       data: {
         activo: false,
+        eliminado: true,
       },
     });
 

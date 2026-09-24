@@ -44,6 +44,8 @@ export class RecordsService {
       where: {
         id: createRecordDto.habito,
         usuarioId,
+        activo: true,
+        eliminado: false,
       },
     });
 
@@ -85,10 +87,6 @@ export class RecordsService {
         },
       });
 
-      /*
-       * Si ya existe un registro para ese día,
-       * acumulamos la nueva cantidad.
-       */
       if (existingRecord) {
         const cantidadAnterior = existingRecord.cantidad ?? 0;
 
@@ -122,9 +120,6 @@ export class RecordsService {
         };
       }
 
-      /*
-       * Primer registro del día.
-       */
       const completado = cantidadRegistrada >= habit.cantidadObjetivo;
 
       const record = await this.prisma.record.create({
@@ -166,12 +161,6 @@ export class RecordsService {
         },
       };
     }
-
-    /*
-     * ==========================================
-     * HÁBITO NO CUANTIFICABLE
-     * ==========================================
-     */
 
     const exists = await this.prisma.record.findFirst({
       where: {

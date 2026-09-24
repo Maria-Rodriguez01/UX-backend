@@ -46,4 +46,8 @@ export class StatisticsController {
 
     return this.statisticsService.monthly(req.user!.id!, fecha);
   }
+  @Get('streaks')
+  streaks(@Req() req: Request) {
+    return this.statisticsService.streaks(req.user!.id!);
+  }
 }
